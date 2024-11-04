@@ -9,11 +9,11 @@ function App() {
   const [isRetrying, setIsRetrying] = useState(false);
   let retryTimeout = null;
 
-  const fetchMoviesHandler = useCallback(async () => {
+  const fetchMoviesHandler = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('https://swapi.dev/api/film/');
+      const response = await fetch('https://swapi.dev/api/films/');
       if (!response.ok) {
         throw new Error("Something went wrong ....Retrying");
       }
@@ -33,6 +33,10 @@ function App() {
       setIsRetrying(true);
     }
     setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchMoviesHandler();
   }, []);
 
   useEffect(() => {
