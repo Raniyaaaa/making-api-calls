@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback,useMemo } from 'react';
 import MoviesList from './components/MoviesList';
 import './App.css';
+import MoviesForm from './components/MoviesForm';
 
 function App() {
   const [movies, setMovies] = useState([]);
@@ -9,7 +10,7 @@ function App() {
   const [isRetrying, setIsRetrying] = useState(false);
   let retryTimeout = null;
 
-  const fetchMoviesHandler = async () => {
+  const fetchMoviesHandler = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -33,7 +34,7 @@ function App() {
       setIsRetrying(true);
     }
     setIsLoading(false);
-  };
+  },[]);
 
   useEffect(() => {
     fetchMoviesHandler();
@@ -53,30 +54,25 @@ function App() {
       clearTimeout(retryTimeout);
     }
   };
-
-  let content = <p>No Movies Found</p>;
-
-  if (movies.length > 0) {
-    content = <MoviesList movies={movies} />;
-  }
-
-  if (error) {
-    content = (
-      <div>
-        <p>{error}</p>
-        {isRetrying && (
-          <button onClick={cancelRetryHandler}>Cancel</button>
-        )}
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    content = <p>Loading....</p>;
-  }
+  const content = useMemo(() => {
+    if (isLoading) return <p>Loading....</p>;
+    if (error) {
+      return (
+        <div>
+          <p>{error}</p>
+          {isRetrying && <button onClick={cancelRetryHandler}>Cancel</button>}
+        </div>
+      );
+    }
+    if (movies.length > 0) return <MoviesList movies={movies} />;
+    return <p>No Movies Found</p>;
+  }, [isLoading, error, isRetrying, movies]);
 
   return (
     <React.Fragment>
+      <section>
+        <MoviesForm/>
+      </section>
       <section>
         <button onClick={fetchMoviesHandler} disabled={isLoading || isRetrying}>
           Fetch Movies
