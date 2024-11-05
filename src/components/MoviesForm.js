@@ -1,21 +1,20 @@
 import React, { useState } from "react";
+import "./MoviesForm.module.css"
 
-const MoviesForm = () => {
+const MoviesForm = (props) => {
   const [movies, setMovies] = useState([]);
   const [title, setTitle] = useState('');
   const [openingText, setOpeningText] = useState('');
   const [releaseDate, setReleaseDate] = useState('');
 
-  const addMovieHandler = (event) => {
+  const submitMovieHandler = (event) => {
     event.preventDefault();
     const newMovie = {
       title,
       openingText,
       releaseDate,
     };
-
-    setMovies((prevMovies) => [...prevMovies, newMovie]);
-    console.log("New Movie Object:", movies);
+    props.onAddMovie(newMovie)
 
     setTitle('');
     setOpeningText('');
@@ -24,7 +23,7 @@ const MoviesForm = () => {
 
   return (
     <section>
-      <form onSubmit={addMovieHandler}>
+      <form onSubmit={submitMovieHandler}>
         <label>
           Title
           <input
@@ -32,6 +31,7 @@ const MoviesForm = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
+            
           />
         </label>
         <label>
@@ -41,6 +41,7 @@ const MoviesForm = () => {
             value={openingText}
             onChange={(e) => setOpeningText(e.target.value)}
             required
+            
           />
         </label>
         <label>
@@ -50,9 +51,13 @@ const MoviesForm = () => {
             value={releaseDate}
             onChange={(e) => setReleaseDate(e.target.value)}
             required
+        
           />
         </label>
-        <button type="submit">Add Movie</button>
+        <br/>
+        <div>
+            <button type="submit">Add Movie</button>
+        </div>
       </form>
     </section>
   );

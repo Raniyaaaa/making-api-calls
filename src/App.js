@@ -10,24 +10,27 @@ function App() {
   const [isRetrying, setIsRetrying] = useState(false);
   let retryTimeout = null;
 
+
   const fetchMoviesHandler = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('https://swapi.dev/api/films/');
+      const response = await fetch('https://movies-list-e4384-default-rtdb.firebaseio.com/movies.json');
       if (!response.ok) {
         throw new Error("Something went wrong ....Retrying");
       }
       const data = await response.json();
-      const transformedMovies = data.results.map((movieData) => {
-        return {
-          id: movieData.episode_id,
-          title: movieData.title,
-          openingText: movieData.opening_crawl,
-          releaseDate: movieData.release_date,
-        };
-      });
-      setMovies(transformedMovies);
+      const loadedMovies=[];
+      for(const key in data){
+        loadedMovies.push({
+          id:key,
+          title:data[key].title,
+          openingText:data[key].openingText,
+          releaseDate:data[key].releaseDate
+        })
+      }
+      
+      setMovies(loadedMovies);
       setIsRetrying(false);
     } catch (error) {
       setError(error.message);
@@ -38,7 +41,7 @@ function App() {
 
   useEffect(() => {
     fetchMoviesHandler();
-  }, []);
+  }, [fetchMoviesHandler]);
 
   useEffect(() => {
     if (isRetrying) {
@@ -54,6 +57,27 @@ function App() {
       clearTimeout(retryTimeout);
     }
   };
+
+  async function addMovieHandler(movie){
+    const response=await fetch('https://movies-list-e4384-default-rtdb.firebaseio.com/movies.json',{
+      method:'POST',
+      body:JSON.stringify(movie),
+      headers:{
+        'Content-Type':'application/json'
+      }
+    })
+    const data=await response.json();
+    console.log(data)
+  }
+
+  const deleteMovieHandler=async (id)=>{
+    await fetch(`https://movies-list-e4384-default-rtdb.firebaseio.com/movies/${id}.json`,{
+      method:"DELETE"
+    })
+    setMovies((prevMovies)=>
+      prevMovies.filter((movie) => movie.id !== id))
+  }
+
   const content = useMemo(() => {
     if (isLoading) return <p>Loading....</p>;
     if (error) {
@@ -64,14 +88,15 @@ function App() {
         </div>
       );
     }
-    if (movies.length > 0) return <MoviesList movies={movies} />;
+    if (movies.length > 0) return <MoviesList movies={movies} onDeleteMovie={deleteMovieHandler}/>;
     return <p>No Movies Found</p>;
   }, [isLoading, error, isRetrying, movies]);
+
 
   return (
     <React.Fragment>
       <section>
-        <MoviesForm/>
+        <MoviesForm onAddMovie={addMovieHandler}/>
       </section>
       <section>
         <button onClick={fetchMoviesHandler} disabled={isLoading || isRetrying}>
